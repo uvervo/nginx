@@ -23,6 +23,7 @@ static ngx_conf_bitmask_t  ngx_mail_smtp_auth_methods[] = {
     { ngx_string("cram-md5"), NGX_MAIL_AUTH_CRAM_MD5_ENABLED },
     { ngx_string("external"), NGX_MAIL_AUTH_EXTERNAL_ENABLED },
     { ngx_string("none"), NGX_MAIL_AUTH_NONE_ENABLED },
+    { ngx_string("xoauth2"), NGX_MAIL_AUTH_OAUTH_ENABLED },
     { ngx_null_string, 0 }
 };
 
@@ -33,7 +34,8 @@ static ngx_str_t  ngx_mail_smtp_auth_methods_names[] = {
     ngx_null_string,  /* APOP */
     ngx_string("CRAM-MD5"),
     ngx_string("EXTERNAL"),
-    ngx_null_string   /* NONE */
+    ngx_null_string,   /* NONE */
+    ngx_string("AUTH=XOAUTH2")
 };
 
 

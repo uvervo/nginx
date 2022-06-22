@@ -457,6 +457,58 @@ ngx_mail_auth_plain(ngx_mail_session_t *s, ngx_connection_t *c, ngx_uint_t n)
 
 
 ngx_int_t
+ngx_mail_auth_oauth(ngx_mail_session_t *s, ngx_connection_t *c, ngx_uint_t n)
+{
+    u_char     *p, *last;
+    ngx_str_t  *arg, plain;
+
+    arg = s->args.elts;
+
+#if (NGX_DEBUG_MAIL_PASSWD)
+    ngx_log_debug1(NGX_LOG_DEBUG_MAIL, c->log, 0,
+                   "mail auth oauth: \"%V\"", &arg[n]);
+#endif
+
+    plain.data = ngx_pnalloc(c->pool, ngx_base64_decoded_length(arg[n].len));
+    if (plain.data == NULL) {
+        return NGX_ERROR;
+    }
+
+    if (ngx_decode_base64(&plain, &arg[n]) != NGX_OK) {
+        ngx_log_error(NGX_LOG_INFO, c->log, 0,
+            "client sent invalid base64 encoding in AUTH OAUTH command");
+        return NGX_MAIL_PARSE_INVALID_COMMAND;
+    }
+
+    p = plain.data;
+    last = p + plain.len;
+
+    while (p < last && *p++ != 0x01) { /* void */ }
+
+    if (p == last) {
+        ngx_log_error(NGX_LOG_INFO, c->log, 0,
+                      "client sent invalid token in AUTH OAUTH command");
+        return NGX_MAIL_PARSE_INVALID_COMMAND;
+    }
+
+    s->login.data = plain.data + 5;
+    s->login.len = p++ - s->login.data - 1;
+
+    s->passwd.data = arg[n].data;
+    s->passwd.len = arg[n].len;
+
+#if (NGX_DEBUG_MAIL_PASSWD)
+    ngx_log_debug2(NGX_LOG_DEBUG_MAIL, c->log, 0,
+                   "mail auth oauth: \"%V\" \"%V\"", &s->login, &s->passwd);
+#endif
+
+    s->auth_method = NGX_MAIL_AUTH_OAUTH;
+
+    return NGX_DONE;
+}
+
+
+ngx_int_t
 ngx_mail_auth_login_username(ngx_mail_session_t *s, ngx_connection_t *c,
     ngx_uint_t n)
 {

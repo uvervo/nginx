@@ -30,6 +30,7 @@ static ngx_conf_bitmask_t  ngx_mail_imap_auth_methods[] = {
     { ngx_string("login"), NGX_MAIL_AUTH_LOGIN_ENABLED },
     { ngx_string("cram-md5"), NGX_MAIL_AUTH_CRAM_MD5_ENABLED },
     { ngx_string("external"), NGX_MAIL_AUTH_EXTERNAL_ENABLED },
+    { ngx_string("xoauth2"), NGX_MAIL_AUTH_OAUTH_ENABLED },
     { ngx_null_string, 0 }
 };
 
@@ -40,7 +41,8 @@ static ngx_str_t  ngx_mail_imap_auth_methods_names[] = {
     ngx_null_string,  /* APOP */
     ngx_string("AUTH=CRAM-MD5"),
     ngx_string("AUTH=EXTERNAL"),
-    ngx_null_string   /* NONE */
+    ngx_null_string,   /* NONE */
+    ngx_string("AUTH=XOAUTH2")
 };
 
 
@@ -181,7 +183,7 @@ ngx_mail_imap_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
     }
 
     for (m = NGX_MAIL_AUTH_PLAIN_ENABLED, i = 0;
-         m <= NGX_MAIL_AUTH_EXTERNAL_ENABLED;
+         m <= NGX_MAIL_AUTH_OAUTH_ENABLED;
          m <<= 1, i++)
     {
         if (m & conf->auth_methods) {
@@ -207,7 +209,7 @@ ngx_mail_imap_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
     auth = p;
 
     for (m = NGX_MAIL_AUTH_PLAIN_ENABLED, i = 0;
-         m <= NGX_MAIL_AUTH_EXTERNAL_ENABLED;
+         m <= NGX_MAIL_AUTH_OAUTH_ENABLED;
          m <<= 1, i++)
     {
         if (m & conf->auth_methods) {

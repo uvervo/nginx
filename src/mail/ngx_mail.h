@@ -136,7 +136,9 @@ typedef enum {
     ngx_pop3_auth_login_password,
     ngx_pop3_auth_plain,
     ngx_pop3_auth_cram_md5,
-    ngx_pop3_auth_external
+    ngx_pop3_auth_external,
+    ngx_pop3_auth_oauth,
+    ngx_pop3_auth_oauth_error
 } ngx_pop3_state_e;
 
 
@@ -147,6 +149,8 @@ typedef enum {
     ngx_imap_auth_plain,
     ngx_imap_auth_cram_md5,
     ngx_imap_auth_external,
+    ngx_imap_auth_oauth,
+    ngx_imap_auth_oauth_error,
     ngx_imap_login,
     ngx_imap_user,
     ngx_imap_passwd
@@ -160,6 +164,8 @@ typedef enum {
     ngx_smtp_auth_plain,
     ngx_smtp_auth_cram_md5,
     ngx_smtp_auth_external,
+    ngx_smtp_auth_oauth,
+    ngx_smtp_auth_oauth_error,
     ngx_smtp_helo,
     ngx_smtp_helo_xclient,
     ngx_smtp_helo_from,
@@ -293,7 +299,7 @@ typedef struct {
 #define NGX_MAIL_AUTH_CRAM_MD5          4
 #define NGX_MAIL_AUTH_EXTERNAL          5
 #define NGX_MAIL_AUTH_NONE              6
-
+#define NGX_MAIL_AUTH_OAUTH             7
 
 #define NGX_MAIL_AUTH_PLAIN_ENABLED     0x0002
 #define NGX_MAIL_AUTH_LOGIN_ENABLED     0x0004
@@ -301,7 +307,7 @@ typedef struct {
 #define NGX_MAIL_AUTH_CRAM_MD5_ENABLED  0x0010
 #define NGX_MAIL_AUTH_EXTERNAL_ENABLED  0x0020
 #define NGX_MAIL_AUTH_NONE_ENABLED      0x0040
-
+#define NGX_MAIL_AUTH_OAUTH_ENABLED     0x0080
 
 #define NGX_MAIL_PARSE_INVALID_COMMAND  20
 
@@ -377,6 +383,8 @@ void ngx_mail_init_connection(ngx_connection_t *c);
 ngx_int_t ngx_mail_salt(ngx_mail_session_t *s, ngx_connection_t *c,
     ngx_mail_core_srv_conf_t *cscf);
 ngx_int_t ngx_mail_auth_plain(ngx_mail_session_t *s, ngx_connection_t *c,
+    ngx_uint_t n);
+ngx_int_t ngx_mail_auth_oauth(ngx_mail_session_t *s, ngx_connection_t *c,
     ngx_uint_t n);
 ngx_int_t ngx_mail_auth_login_username(ngx_mail_session_t *s,
     ngx_connection_t *c, ngx_uint_t n);

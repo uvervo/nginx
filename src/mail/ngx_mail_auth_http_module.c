@@ -152,7 +152,8 @@ static ngx_str_t   ngx_mail_auth_http_method[] = {
     ngx_string("apop"),
     ngx_string("cram-md5"),
     ngx_string("external"),
-    ngx_string("none")
+    ngx_string("none"),
+    ngx_string("oauth")
 };
 
 static ngx_str_t   ngx_mail_smtp_errcode = ngx_string("535 5.7.0");
@@ -525,16 +526,30 @@ ngx_mail_auth_http_process_headers(ngx_mail_session_t *s,
                 switch (s->protocol) {
 
                 case NGX_MAIL_POP3_PROTOCOL:
+                    if (s->auth_method == NGX_MAIL_AUTH_OAUTH) {
+                        s->mail_state = ngx_imap_auth_oauth_error;
+                        size = sizeof("+ ") - 1 + len + sizeof(CRLF) - 1;
+                    } else {
                     size = sizeof("-ERR ") - 1 + len + sizeof(CRLF) - 1;
+                    }
                     break;
 
                 case NGX_MAIL_IMAP_PROTOCOL:
+                    if (s->auth_method == NGX_MAIL_AUTH_OAUTH) {
+                        s->mail_state = ngx_imap_auth_oauth_error;
+                        size = sizeof("+ ") - 1 + len + sizeof(CRLF) - 1;
+                    } else {
                     size = s->tag.len + sizeof("NO ") - 1 + len
                            + sizeof(CRLF) - 1;
+                    }
                     break;
 
                 default: /* NGX_MAIL_SMTP_PROTOCOL */
+                    if (s->auth_method == NGX_MAIL_AUTH_OAUTH) {
+                        s->mail_state = ngx_smtp_auth_oauth_error;
+                    } else {
                     ctx->err = ctx->errmsg;
+                    }
                     continue;
                 }
 
@@ -551,12 +566,20 @@ ngx_mail_auth_http_process_headers(ngx_mail_session_t *s,
                 switch (s->protocol) {
 
                 case NGX_MAIL_POP3_PROTOCOL:
+                    if (s->auth_method == NGX_MAIL_AUTH_OAUTH) {
+                        *p++ = '+'; *p++ = ' ';
+                    } else {
                     *p++ = '-'; *p++ = 'E'; *p++ = 'R'; *p++ = 'R'; *p++ = ' ';
+                    }
                     break;
 
                 case NGX_MAIL_IMAP_PROTOCOL:
+                    if (s->auth_method == NGX_MAIL_AUTH_OAUTH) {
+                        *p++ = '+'; *p++ = ' ';
+                    } else {
                     p = ngx_cpymem(p, s->tag.data, s->tag.len);
                     *p++ = 'N'; *p++ = 'O'; *p++ = ' ';
+                    }
                     break;
 
                 default: /* NGX_MAIL_SMTP_PROTOCOL */
@@ -723,7 +746,9 @@ ngx_mail_auth_http_process_headers(ngx_mail_session_t *s,
                 ngx_destroy_pool(ctx->pool);
 
                 if (timer == 0) {
+                    if (s->auth_method != NGX_MAIL_AUTH_OAUTH) {
                     s->quit = 1;
+                    }
                     ngx_mail_send(s->connection->write);
                     return;
                 }

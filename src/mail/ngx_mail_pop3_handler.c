@@ -24,10 +24,11 @@ static ngx_int_t ngx_mail_pop3_auth(ngx_mail_session_t *s, ngx_connection_t *c);
 static u_char  pop3_greeting[] = "+OK POP3 ready" CRLF;
 static u_char  pop3_ok[] = "+OK" CRLF;
 static u_char  pop3_next[] = "+ " CRLF;
+static u_char  pop3_oauth_next[] = "+ " CRLF;
 static u_char  pop3_username[] = "+ VXNlcm5hbWU6" CRLF;
 static u_char  pop3_password[] = "+ UGFzc3dvcmQ6" CRLF;
 static u_char  pop3_invalid_command[] = "-ERR invalid command" CRLF;
-
+static u_char  pop3_oauth_error_finalizing[] = "NO SASL authentication failed" CRLF;
 
 void
 ngx_mail_pop3_init_session(ngx_mail_session_t *s, ngx_connection_t *c)
@@ -243,6 +244,15 @@ ngx_mail_pop3_auth_state(ngx_event_t *rev)
 
         case ngx_pop3_auth_external:
             rc = ngx_mail_auth_external(s, c, 0);
+            break;
+
+        case ngx_pop3_auth_oauth:
+            rc = ngx_mail_auth_oauth(s, c, 0);
+            break;
+
+        case ngx_pop3_auth_oauth_error:
+            s->quit = 1;
+            ngx_str_set(&s->text, pop3_oauth_error_finalizing);
             break;
         }
     }
@@ -507,6 +517,13 @@ ngx_mail_pop3_auth(ngx_mail_session_t *s, ngx_connection_t *c)
 
         ngx_str_set(&s->out, pop3_username);
         s->mail_state = ngx_pop3_auth_external;
+
+        return NGX_OK;
+
+    case NGX_MAIL_AUTH_OAUTH:
+
+        ngx_str_set(&s->out, pop3_oauth_next);
+        s->mail_state = ngx_pop3_auth_oauth;
 
         return NGX_OK;
     }
