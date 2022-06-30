@@ -254,7 +254,7 @@ ngx_mail_smtp_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
         *p++ = 'A'; *p++ = 'U'; *p++ = 'T'; *p++ = 'H';
 
         for (m = NGX_MAIL_AUTH_PLAIN_ENABLED, i = 0;
-             m <= NGX_MAIL_AUTH_EXTERNAL_ENABLED;
+             m <= NGX_MAIL_AUTH_OAUTH_ENABLED;
              m <<= 1, i++)
         {
             if (m & conf->auth_methods) {
