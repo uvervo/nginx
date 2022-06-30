@@ -35,7 +35,7 @@ static ngx_str_t  ngx_mail_smtp_auth_methods_names[] = {
     ngx_string("CRAM-MD5"),
     ngx_string("EXTERNAL"),
     ngx_null_string,   /* NONE */
-    ngx_string("AUTH=XOAUTH2")
+    ngx_string("XOAUTH2")
 };
 
 
