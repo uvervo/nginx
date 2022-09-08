@@ -903,6 +903,28 @@ ngx_mail_auth_parse(ngx_mail_session_t *s, ngx_connection_t *c)
         return NGX_MAIL_PARSE_INVALID_COMMAND;
     }
 
+    if (arg[0].len == 7) {
+
+    ngx_log_error(NGX_LOG_DEBUG_MAIL, c->log, 0, "length==7");
+
+        if (ngx_strncasecmp(arg[0].data, (u_char *) "XOAUTH2", 7) == 0) {
+
+            if (s->args.nelts == 1) {
+                return NGX_MAIL_AUTH_OAUTH;
+            }
+
+            if (s->args.nelts == 2) {
+                /* preserve tag for error case */
+                s->arg_start = s->buffer->start + s->tag.len;
+                s->buffer->pos = s->arg_start;
+                s->buffer->last = s->arg_start;
+                return ngx_mail_auth_oauth(s, c, 1);
+            }
+        }
+
+        return NGX_MAIL_PARSE_INVALID_COMMAND;
+    }
+
     if (arg[0].len == 8) {
 
         if (ngx_strncasecmp(arg[0].data, (u_char *) "CRAM-MD5", 8) == 0) {

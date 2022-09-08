@@ -27,10 +27,12 @@ static u_char  imap_star[] = "* ";
 static u_char  imap_ok[] = "OK completed" CRLF;
 static u_char  imap_next[] = "+ OK" CRLF;
 static u_char  imap_plain_next[] = "+ " CRLF;
+static u_char  imap_oauth_next[] = "+ " CRLF;
 static u_char  imap_username[] = "+ VXNlcm5hbWU6" CRLF;
 static u_char  imap_password[] = "+ UGFzc3dvcmQ6" CRLF;
 static u_char  imap_bye[] = "* BYE" CRLF;
 static u_char  imap_invalid_command[] = "BAD invalid command" CRLF;
+static u_char  imap_oauth_error_finalizing[] = "NO SASL authentication failed" CRLF;
 
 
 void
@@ -241,6 +243,15 @@ ngx_mail_imap_auth_state(ngx_event_t *rev)
         case ngx_imap_auth_external:
             rc = ngx_mail_auth_external(s, c, 0);
             break;
+
+        case ngx_imap_auth_oauth:
+            rc = ngx_mail_auth_oauth(s, c, 0);
+            break;
+
+        case ngx_imap_auth_oauth_error:
+            s->quit = 1;
+            ngx_str_set(&s->text, imap_oauth_error_finalizing);
+            break;
         }
 
     } else if (rc == NGX_IMAP_NEXT) {
@@ -432,6 +443,13 @@ ngx_mail_imap_authenticate(ngx_mail_session_t *s, ngx_connection_t *c)
 
         ngx_str_set(&s->out, imap_username);
         s->mail_state = ngx_imap_auth_external;
+
+        return NGX_OK;
+
+    case NGX_MAIL_AUTH_OAUTH:
+
+        ngx_str_set(&s->out, imap_oauth_next);
+        s->mail_state = ngx_imap_auth_oauth;
 
         return NGX_OK;
     }
